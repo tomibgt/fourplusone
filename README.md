@@ -46,3 +46,8 @@ in area, the new filled intersections become too far away from each other to
 build anything sustainable. However, I haven't proved this, so I'm now
 trying to go through all the possible iterations of the game.
 
+# Running the game
+
+You need to have the pygame package installed.
+
+Run the game with command pythonw resolve.py
