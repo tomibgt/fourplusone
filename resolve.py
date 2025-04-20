@@ -23,7 +23,7 @@ while running:
     y = None
     x2 = None
     y2 = None
-    for target in resolution_grid.intersection:
+    for target in resolution_grid.intersections:
         x = target[0]
         y = target[1]
         if resolution_grid.is_valid_line(x, y, 0, -1):
@@ -75,7 +75,7 @@ while running:
             if random.choice([True, False]):
                 break
     if x2 is not None:
-        resolution_grid.add_line(x, y, x2, y2)
+        resolution_grid.add_line_to_grid(x, y, x2, y2)
         line_count += 1
 
     # Poll for events
@@ -101,7 +101,7 @@ while running:
                                     color="black",
                                     radius=2)
                 
-    for segment in resolution_grid.line_segment.keys():
+    for segment in resolution_grid.line_segments.keys():
         x = segment[0]
         y = segment[1]
         x2 = segment[2]
