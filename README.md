@@ -1,4 +1,4 @@
-# 3+1 patience game resolver
+# 4+1 patience game resolver
 
 I've never learned a name more proper than "line patience" or "line solitaire"
 (viivapasianssi) for this game an aunt of mine taught me as one she had been
@@ -41,5 +41,8 @@ in the initial plus, as shown in Figure 5.
 |:--:|
 | *Figure 4. A diagonal line using three newly filled intersections and one originally filled intersection.* |
 
-
+I believe this game is not to be open-ended, but rather, as the built shape grows
+in area, the new filled intersections become too far away from each other to
+build anything sustainable. However, I haven't proved this, so I'm now
+trying to go through all the possible iterations of the game.
 
