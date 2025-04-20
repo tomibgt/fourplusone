@@ -15,6 +15,48 @@ running = True
 
 while running:
 
+    x = None
+    y = None
+    x2 = None
+    y2 = None
+    for target in resolution_grid.intersection:
+        x = target[0]
+        y = target[1]
+        if resolution_grid.is_valid_line(x, y, 0, -1):
+            x2 = 0
+            y2 = -1
+            break
+        if resolution_grid.is_valid_line(x, y, 1, -1):
+            x2 = 1
+            y2 = -1
+            break
+        if resolution_grid.is_valid_line(x, y, 1, 0):
+            x2 = 1
+            y2 = 0
+            break
+        if resolution_grid.is_valid_line(x, y, 1, 1):
+            x2 = 1
+            y2 = 1
+            break
+        if resolution_grid.is_valid_line(x, y, 0, 1):
+            x2 = 0
+            y2 = 1
+            break
+        if resolution_grid.is_valid_line(x, y, -1, 1):
+            x2 = -1
+            y2 = 1
+            break
+        if resolution_grid.is_valid_line(x, y, -1, 0):
+            x2 = -1
+            y2 = 0
+            break
+        if resolution_grid.is_valid_line(x, y, -1, -1):
+            x2 = -1
+            y2 = -1
+            break
+    if x2 is not None:
+        resolution_grid.add_line(x, y, x2, y2)
+
     # Poll for events
     # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
@@ -37,6 +79,18 @@ while running:
                                             ((y-resolution_grid.y_min)*scale)+5+y_offset),
                                     color="black",
                                     radius=2)
+                
+    for segment in resolution_grid.line_segment.keys():
+        x = segment[0]
+        y = segment[1]
+        x2 = segment[2]
+        y2 = segment[3]
+        pygame.draw.line(surface=screen,
+                         color="black",
+                         start_pos=Vector2(((x-resolution_grid.x_min)*scale)+5+x_offset, 
+                                            ((y-resolution_grid.y_min)*scale)+5+y_offset),
+                         end_pos=Vector2(((x2-resolution_grid.x_min)*scale)+5+x_offset, 
+                                            ((y2-resolution_grid.y_min)*scale)+5+y_offset))
 
     # flip() the display to put your work on screen
     pygame.display.flip()
