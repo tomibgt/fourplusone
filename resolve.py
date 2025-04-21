@@ -1,12 +1,15 @@
 import pygame
 from grid import Grid
+from resolvers import RandomResolver
 from pygame.math import Vector2
 import random
 
-width = 600
-height = 400
+width           = 600
+height          = 400
 resolution_grid = Grid()
-ticker = 0
+resolver        = RandomResolver(resolution_grid)
+
+ticker     = 0
 line_count = 0
 
 # Run the game
@@ -18,64 +21,8 @@ font = pygame.font.SysFont('Arial', 10)
 
 while running:
 
-    opening = False
-    x = None
-    y = None
-    x2 = None
-    y2 = None
-    for target in resolution_grid.intersections:
-        x = target[0]
-        y = target[1]
-        if resolution_grid.is_valid_line(x, y, 0, -1):
-            opening = True
-            x2 = 0
-            y2 = -1
-            if random.choice([True, False]):
-                break
-        if resolution_grid.is_valid_line(x, y, 1, -1):
-            opening = True
-            x2 = 1
-            y2 = -1
-            if random.choice([True, False]):
-                break
-        if resolution_grid.is_valid_line(x, y, 1, 0):
-            opening = True
-            x2 = 1
-            y2 = 0
-            if random.choice([True, False]):
-                break
-        if resolution_grid.is_valid_line(x, y, 1, 1):
-            opening = True
-            x2 = 1
-            y2 = 1
-            if random.choice([True, False]):
-                break
-        if resolution_grid.is_valid_line(x, y, 0, 1):
-            opening = True
-            x2 = 0
-            y2 = 1
-            if random.choice([True, False]):
-                break
-        if resolution_grid.is_valid_line(x, y, -1, 1):
-            opening = True
-            x2 = -1
-            y2 = 1
-            if random.choice([True, False]):
-                break
-        if resolution_grid.is_valid_line(x, y, -1, 0):
-            opening = True
-            x2 = -1
-            y2 = 0
-            if random.choice([True, False]):
-                break
-        if resolution_grid.is_valid_line(x, y, -1, -1):
-            opening = True
-            x2 = -1
-            y2 = -1
-            if random.choice([True, False]):
-                break
-    if x2 is not None:
-        resolution_grid.add_line_to_grid(x, y, x2, y2)
+    opening = resolver.make_a_move()
+    if opening:
         line_count += 1
 
     # Poll for events
@@ -119,7 +66,6 @@ while running:
     text = font.render(f'Line: {line_count}{punctuator}', True, "black")
     screen.blit(text, (1, 1))
 
-    # flip() the display to put your work on screen
     pygame.display.flip()
 
     while not opening and running:
@@ -129,7 +75,6 @@ while running:
 
     clock.tick(60)  # limits FPS to 60?
     ticker += 1
-    #print(f"{ticker}")
 
 pygame.quit()
 
