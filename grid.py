@@ -7,6 +7,7 @@ class Grid:
     x_max: int = 0
     y_min: int = 0
     y_max: int = 0
+    focus: list[int, int]
 
     def __init__(self):
         self.line_count = 0
@@ -96,6 +97,7 @@ class Grid:
             y (int): Y-coordinate of the intersection.
         """
         self.intersections[(x, y)] = True
+        self.intersections = dict(sorted(self.intersections.items()))
         if x > Grid.x_max:
             Grid.x_max = x
         if y > Grid.y_max:

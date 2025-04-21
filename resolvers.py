@@ -97,6 +97,9 @@ class UltimateResolver(Resolver):
     infile: str  = None
     #infile: str  = "resolveIN.log"
     outfile: str = "resolveOUT.log"
+    current_path: int = 1
+    total_paths: int  = 1
+    future_paths: int = 1
 
     def make_a_move(self) -> bool:
         # New round begins
@@ -107,6 +110,9 @@ class UltimateResolver(Resolver):
             os.rename(self.outfile, self.infile)
 
         # If there is an input file, process it
+        self.total_paths = self.future_paths
+        self.future_paths = 1
+        self.current_path = 1
         if self.infile is not None:
             with open(self.infile, "r") as f:
                 previous_moves = []
@@ -114,6 +120,7 @@ class UltimateResolver(Resolver):
                     move = tuple(int(val) if val.strip() != '' else None for val in line.strip().split(","))
                     # Once we get to the end of a path, find the possible moves there and store
                     if move[0] is None:
+                        self.current_path += 1
                         if self.find_new_moves(previous_moves):
                             moves_available = True
                         else:
@@ -141,22 +148,32 @@ class UltimateResolver(Resolver):
         for target in self.game_grid.intersections:
             x = target[0]
             y = target[1]
+            Grid.focus = [x, y]
+            self.view.refresh()
             if self.game_grid.is_valid_line(x, y, 1, 1): # \.
                 possible_moves.append((x, y, 1, 1))
+                self.future_paths += 1
             if self.game_grid.is_valid_line(x, y, 0, 1): # |.
                 possible_moves.append((x, y, 0, 1))
+                self.future_paths += 1
             if self.game_grid.is_valid_line(x, y, -1, 1): #./
                 possible_moves.append((x, y, -1, 1))
+                self.future_paths += 1
             if self.game_grid.is_valid_line(x, y, -1, 0): # .–
                 possible_moves.append((x, y, -1, 0))
+                self.future_paths += 1
             if self.game_grid.is_valid_line(x, y, -1, -1): # '\
                 possible_moves.append((x, y, -1, -1))
+                self.future_paths += 1
             if self.game_grid.is_valid_line(x, y, 0, -1): # |'
                 possible_moves.append((x, y, 0, -1))
+                self.future_paths += 1
             if self.game_grid.is_valid_line(x, y, 1, -1): # /'
                 possible_moves.append((x, y, 1, -1))
+                self.future_paths += 1
             if self.game_grid.is_valid_line(x, y, 1, 0): # –.
                 possible_moves.append((x, y, 1, 0))
+                self.future_paths += 1
 
         # Store each possible move in the outfile, preceeded by the path so far
         with open(self.outfile, "a") as outputfile:
