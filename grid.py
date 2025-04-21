@@ -10,6 +10,8 @@ class Grid:
     line_segments: dict[tuple[int, int, int, int]] = {}
 
     def __init__(self):
+        self.intersections = {}
+        self.line_segments = {}
         """Initialize the grid with the initial plus laid on it."""
         for i in range(3):
             self._fill_intersection(  i  ,   0  )
