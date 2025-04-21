@@ -100,6 +100,7 @@ class UltimateResolver(Resolver):
     current_path: int = 1
     total_paths: int  = 1
     future_paths: int = 1
+    ticker: int       = 1
 
     def make_a_move(self) -> bool:
         # New round begins
@@ -149,7 +150,13 @@ class UltimateResolver(Resolver):
             x = target[0]
             y = target[1]
             Grid.focus = [x, y]
-            self.view.refresh()
+            self.ticker += 1
+            if self.ticker > 3:
+                self.view.refresh()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                self.ticker = 1
             if self.game_grid.is_valid_line(x, y, 1, 1): # \.
                 possible_moves.append((x, y, 1, 1))
                 self.future_paths += 1

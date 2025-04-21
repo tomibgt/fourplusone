@@ -55,10 +55,10 @@ class View:
         punctuator = "!"
         if self.resolver.is_still_going():
             punctuator = "..."        
-        text = self.font.render(f'Line: {self.resolver.game_grid.line_count}:{self.resolver.current_path}/{self.resolver.total_paths}{punctuator}', True, "black")
+        text = self.font.render(f'Line: {self.resolver.game_grid.line_count}:{self.resolver.current_path}/{self.resolver.total_paths}({self.resolver.future_paths}){punctuator}', True, "black")
         self.screen.blit(text, (1, 1))
 
-        self.clock.tick(60)
+        #self.clock.tick(60)
         pygame.display.flip()
 
     def set_resolver(self, resolver: Resolver):
