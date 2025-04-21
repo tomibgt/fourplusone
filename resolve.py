@@ -6,8 +6,8 @@ import random
 
 width           = 600
 height          = 400
-resolution_grid = Grid()
-resolver        = RandomResolver(resolution_grid)
+#resolver.game_grid = Grid()
+resolver        = RandomResolver()
 
 ticker     = 0
 line_count = 0
@@ -33,32 +33,32 @@ while running:
 
     screen.fill("white")
 
-    x_scale_candidate = (width - 10) / (resolution_grid.x_max - resolution_grid.x_min)
-    y_scale_candidate = (height - 10) / (resolution_grid.y_max - resolution_grid.y_min)
+    x_scale_candidate = (width - 10) / (resolver.game_grid.x_max - resolver.game_grid.x_min)
+    y_scale_candidate = (height - 10) / (resolver.game_grid.y_max - resolver.game_grid.y_min)
     scale = min(x_scale_candidate, y_scale_candidate)
-    x_offset = (width - ((resolution_grid.x_max - resolution_grid.x_min) * scale) - 10) / 2
-    y_offset = (height - ((resolution_grid.y_max - resolution_grid.y_min) * scale) - 10) / 2
+    x_offset = (width - ((resolver.game_grid.x_max - resolver.game_grid.x_min) * scale) - 10) / 2
+    y_offset = (height - ((resolver.game_grid.y_max - resolver.game_grid.y_min) * scale) - 10) / 2
 
-    for x in range(resolution_grid.x_min, resolution_grid.x_max+1):
-        for y in range(resolution_grid.y_min, resolution_grid.y_max+1):
-            if resolution_grid.is_filled(x, y):
+    for x in range(resolver.game_grid.x_min, resolver.game_grid.x_max+1):
+        for y in range(resolver.game_grid.y_min, resolver.game_grid.y_max+1):
+            if resolver.game_grid.is_filled(x, y):
                 pygame.draw.circle(surface=screen, 
-                                    center=Vector2(((x-resolution_grid.x_min)*scale)+5+x_offset, 
-                                            ((y-resolution_grid.y_min)*scale)+5+y_offset),
+                                    center=Vector2(((x-resolver.game_grid.x_min)*scale)+5+x_offset, 
+                                            ((y-resolver.game_grid.y_min)*scale)+5+y_offset),
                                     color="black",
                                     radius=2)
                 
-    for segment in resolution_grid.line_segments.keys():
+    for segment in resolver.game_grid.line_segments.keys():
         x = segment[0]
         y = segment[1]
         x2 = segment[2]
         y2 = segment[3]
         pygame.draw.line(surface=screen,
                          color="black",
-                         start_pos=Vector2(((x-resolution_grid.x_min)*scale)+5+x_offset, 
-                                            ((y-resolution_grid.y_min)*scale)+5+y_offset),
-                         end_pos=Vector2(((x2-resolution_grid.x_min)*scale)+5+x_offset, 
-                                            ((y2-resolution_grid.y_min)*scale)+5+y_offset))
+                         start_pos=Vector2(((x-resolver.game_grid.x_min)*scale)+5+x_offset, 
+                                            ((y-resolver.game_grid.y_min)*scale)+5+y_offset),
+                         end_pos=Vector2(((x2-resolver.game_grid.x_min)*scale)+5+x_offset, 
+                                            ((y2-resolver.game_grid.y_min)*scale)+5+y_offset))
 
     punctuator = "!"
     if opening:

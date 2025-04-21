@@ -5,7 +5,9 @@ class Resolver:
 
     game_grid: Grid = None
 
-    def __init__(self, grid: Grid):
+    def __init__(self, grid: Grid = None):
+        if grid is None:
+            grid = Grid()
         self.game_grid = grid
         
 
