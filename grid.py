@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 class Grid:
     """This class models the grid and other elements of the 4+1 solitaire."""
@@ -6,12 +7,11 @@ class Grid:
     x_max: int = 0
     y_min: int = 0
     y_max: int = 0
-    intersections: dict[tuple[int, int], bool] = {}
-    line_segments: dict[tuple[int, int, int, int]] = {}
 
     def __init__(self):
-        self.intersections = {}
-        self.line_segments = {}
+        self.line_count = 0
+        self.intersections: dict[tuple[int, int], bool] = {}
+        self.line_segments: dict[tuple[int, int, int, int]] = {}
         """Initialize the grid with the initial plus laid on it."""
         for i in range(3):
             self._fill_intersection(  i  ,   0  )
@@ -60,6 +60,7 @@ class Grid:
                     next_y = y + (i + 1) * y_heading
                     sx1, sy1, sx2, sy2 = self._normalize_segment(xi, yi, next_x, next_y)
                     self._add_line_segment(sx1, sy1, sx2, sy2)
+            self.line_count += 1
 
     def _add_line_segment(self, x: int, y: int, x2: int, y2: int):
         """
@@ -95,14 +96,14 @@ class Grid:
             y (int): Y-coordinate of the intersection.
         """
         self.intersections[(x, y)] = True
-        if x > self.x_max:
-            self.x_max = x
-        if y > self.y_max:
-            self.y_max = y
-        if x < self.x_min:
-            self.x_min = x
-        if y < self.y_min:
-            self.y_min = y
+        if x > Grid.x_max:
+            Grid.x_max = x
+        if y > Grid.y_max:
+            Grid.y_max = y
+        if x < Grid.x_min:
+            Grid.x_min = x
+        if y < Grid.y_min:
+            Grid.y_min = y
 
     def _has_segment(self, x: int, y: int, x2: int, y2:int) -> bool:
         """

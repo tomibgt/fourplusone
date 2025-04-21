@@ -1,17 +1,26 @@
-from grid import Grid
+from __future__ import annotations
+
 import random
 import os
-from typing import TextIO
+import pygame
+
+from grid import Grid
+from view import View
 
 class Resolver:
 
     game_grid: Grid = None
 
-    def __init__(self, grid: Grid = None):
+    def __init__(self, grid: Grid = None, view: View = None):
         if grid is None:
             grid = Grid()
-        self.game_grid = grid
-        
+        self.game_grid   = grid
+        self.still_going = True
+        self.view        = view
+        self.view.set_resolver(self)
+
+    def is_still_going(self) -> bool:
+        return self.still_going
 
     def make_a_move() -> bool:
         pass
@@ -107,6 +116,8 @@ class UltimateResolver(Resolver):
                     if move[0] is None:
                         if self.find_new_moves(previous_moves):
                             moves_available = True
+                        else:
+                            self.still_going = False
                         previous_moves = []
                     else:
                         previous_moves.append(move)
@@ -123,6 +134,8 @@ class UltimateResolver(Resolver):
         if previous_moves is not None:
             for move in previous_moves:
                 self.game_grid.add_line_to_grid(*move)
+                self.view.refresh()
+
         # Find out the possible next moves and store them as new paths
         possible_moves: list[tuple[int, int, int, int]] = []
         for target in self.game_grid.intersections:
@@ -153,5 +166,6 @@ class UltimateResolver(Resolver):
                         outputfile.write(",".join(map(str, previous_move)) + "\n")
                 outputfile.write(",".join(map(str, move)) + "\n")
                 outputfile.write(",,,\n")
+                outputfile.flush()
         return len(possible_moves) > 0
     
