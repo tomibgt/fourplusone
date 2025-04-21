@@ -25,11 +25,12 @@ class View:
         x_offset = (self.width - ((self.resolver.game_grid.x_max - self.resolver.game_grid.x_min) * scale) - 10) / 2
         y_offset = (self.height - ((self.resolver.game_grid.y_max - self.resolver.game_grid.y_min) * scale) - 10) / 2
 
-        pygame.draw.rect(surface=self.screen,
-                         color="blue",
-                         rect=Rect(((self.resolver.game_grid.focus[0]-self.resolver.game_grid.x_min)*scale)+2+x_offset, 
-                                   ((self.resolver.game_grid.focus[1]-self.resolver.game_grid.y_min)*scale)+2+y_offset, 
-                                   7, 7))
+        if hasattr(self.resolver.game_grid, "focus"):
+            pygame.draw.rect(surface=self.screen,
+                            color="blue",
+                            rect=Rect(((self.resolver.game_grid.focus[0]-self.resolver.game_grid.x_min)*scale)+2+x_offset, 
+                                    ((self.resolver.game_grid.focus[1]-self.resolver.game_grid.y_min)*scale)+2+y_offset, 
+                                    7, 7))
 
         for x in range(self.resolver.game_grid.x_min, self.resolver.game_grid.x_max+1):
             for y in range(self.resolver.game_grid.y_min, self.resolver.game_grid.y_max+1):
@@ -54,8 +55,11 @@ class View:
 
         punctuator = "!"
         if self.resolver.is_still_going():
-            punctuator = "..."        
-        text = self.font.render(f'Line: {self.resolver.game_grid.line_count}:{self.resolver.current_path}/{self.resolver.total_paths}({self.resolver.future_paths}){punctuator}', True, "black")
+            punctuator = "..."
+        if hasattr(self.resolver, "current_path"):
+            text = self.font.render(f'Line: {self.resolver.game_grid.line_count}:{self.resolver.current_path}/{self.resolver.total_paths}({self.resolver.future_paths}){punctuator}', True, "black")
+        else:
+            text = self.font.render(f'Line: {self.resolver.game_grid.line_count}{punctuator}', True, "black")
         self.screen.blit(text, (1, 1))
 
         #self.clock.tick(60)
