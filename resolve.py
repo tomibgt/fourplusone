@@ -1,13 +1,13 @@
 import pygame
 from grid import Grid
-from resolvers import RandomResolver
+from resolvers import UltimateResolver
 from pygame.math import Vector2
 import random
 
-width           = 600
-height          = 400
-#resolver.game_grid = Grid()
-resolver        = RandomResolver()
+width      = 600
+height     = 400
+#resolver        = RandomResolver()
+resolver   = UltimateResolver()
 
 ticker     = 0
 line_count = 0
