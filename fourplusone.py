@@ -46,7 +46,7 @@ def main():
 
     while running:
 
-        opening = resolver.make_a_move()
+        opening = resolver.add_a_line()
 
         # Poll for events
         # pygame.QUIT event means the user clicked X to close your window

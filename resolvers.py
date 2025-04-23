@@ -4,12 +4,12 @@ import random
 import os
 import pygame
 
-from grid import Grid
+from grid import *
 from view import View
 
 class Resolver:
 
-    game_grid: Grid = None
+    #game_grid: Grid = None
 
     def __init__(self, grid: Grid = None, view: View = None):
         if grid is None:
@@ -23,7 +23,7 @@ class Resolver:
     def is_still_going(self) -> bool:
         return self.still_going
 
-    def make_a_move() -> bool:
+    def add_a_line() -> bool:
         pass
 
     def set_view(self, view: View):
@@ -34,9 +34,10 @@ class RandomResolver(Resolver):
 
     def __init__(self):
         super().__init__()
+        self.game_grid   = Grid()
         self.clock = pygame.time.Clock()
 
-    def make_a_move(self) -> bool:
+    def add_a_line(self) -> bool:
         opening   = True
         move_made = False
         x = None
@@ -48,56 +49,57 @@ class RandomResolver(Resolver):
             for target in self.game_grid.intersections:
                 x = target[0]
                 y = target[1]
-                if self.game_grid.is_valid_line(x, y, 0, -1):
+                if self.game_grid.is_valid_line(Line(x, y, 0, -1)):
                     opening = True
                     x2 = 0
                     y2 = -1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(x, y, 1, -1):
+                if self.game_grid.is_valid_line(Line(x, y, 1, -1)):
                     opening = True
                     x2 = 1
                     y2 = -1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(x, y, 1, 0):
+                if self.game_grid.is_valid_line(Line(x, y, 1, 0)):
                     opening = True
                     x2 = 1
                     y2 = 0
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(x, y, 1, 1):
+                if self.game_grid.is_valid_line(Line(x, y, 1, 1)):
                     opening = True
                     x2 = 1
                     y2 = 1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(x, y, 0, 1):
+                if self.game_grid.is_valid_line(Line(x, y, 0, 1)):
                     opening = True
                     x2 = 0
                     y2 = 1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(x, y, -1, 1):
+                if self.game_grid.is_valid_line(Line(x, y, -1, 1)):
                     opening = True
                     x2 = -1
                     y2 = 1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(x, y, -1, 0):
+                if self.game_grid.is_valid_line(Line(x, y, -1, 0)):
                     opening = True
                     x2 = -1
                     y2 = 0
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(x, y, -1, -1):
+                if self.game_grid.is_valid_line(Line(x, y, -1, -1)):
                     opening = True
                     x2 = -1
                     y2 = -1
                     if random.choice([True, False]):
                         break
             if x2 is not None:
-                self.game_grid.add_line_to_grid(x, y, x2, y2)
+                line: Line = Line(x, y, x2, y2)
+                self.game_grid.add_line_to_grid(line)
                 move_made = True
             self.still_going = move_made
             self.clock.tick(2)
@@ -114,7 +116,7 @@ class UltimateResolver(Resolver):
     future_paths: int = 0
     ticker: int       = 1
 
-    def make_a_move(self) -> bool:
+    def add_a_line(self) -> bool:
         """
         Loads the stored movement paths from the input file and requests for
         storing newly found movement paths to the output file.
@@ -123,7 +125,7 @@ class UltimateResolver(Resolver):
             bool: True if there is still paths to be processed. False otherwise.
         """
         # New round begins
-        moves_available: bool = False
+        lines_available: bool = False
         # If there has been a previous round, we replace the input file with the outputfile
         if os.path.exists(self.outfile):
             self.infile = "resolveIN.log"
@@ -135,28 +137,28 @@ class UltimateResolver(Resolver):
         self.current_path = 1 # Counter for how many paths have been processed from the input file
         if self.infile is not None:
             with open(self.infile, "r") as file_handle:
-                previous_moves = []
+                previous_lines = []
                 for line in file_handle:
-                    game_move = tuple(int(val) if val.strip() != '' else None for val in line.strip().split(","))
+                    stored_line = Line(int(val) if val.strip() != '' else None for val in line.strip().split(","))
                     # Once we get to the end of a path, find the possible moves there and store
-                    if game_move[0] is None:
+                    if stored_line[0] is None:
                         self.current_path += 1
-                        if self.find_new_moves(previous_moves):
-                            moves_available = True
+                        if self.find_new_lines(previous_lines):
+                            lines_available = True
                         else:
                             self.still_going = False
-                        previous_moves = []
+                        previous_lines = []
                     else:
-                        previous_moves.append(game_move)
+                        previous_lines.append(stored_line)
         # If there is no input file, get started with new files
         else:
-            self.find_new_moves(None)
-            moves_available = True
+            self.find_new_lines(None)
+            lines_available = True
         self.view.refresh()
 
-        return moves_available
+        return lines_available
 
-    def find_new_moves(self, previous_moves: list[(int, int, int, int)]):
+    def find_new_lines(self, previous_moves: list[Line]):
         """
         Should be fed a previously traversed path of line adding moves.
         Produces all possibly lines that could be played as a next move.
@@ -172,12 +174,12 @@ class UltimateResolver(Resolver):
 
         # Initialize the grid with making the previous moves
         if previous_moves is not None:
-            for move in previous_moves:
-                self.game_grid.add_line_to_grid(*move)
+            for line in previous_moves:
+                self.game_grid.add_line_to_grid(line)
                 self.view.refresh()
 
         # Find out the possible next moves and store them as new paths
-        possible_moves: list[tuple[int, int, int, int]] = []
+        possible_moves: list[Line] = []
         for target in self.game_grid.intersections:
             x = target[0]
             y = target[1]
@@ -189,38 +191,29 @@ class UltimateResolver(Resolver):
                     if event.type == pygame.QUIT:
                         pygame.quit()
                 self.ticker = 1
-            if self.game_grid.is_valid_line(x, y, 1, 1): # \.
-                possible_moves.append((x, y, 1, 1))
-                self.future_paths += 1
-            if self.game_grid.is_valid_line(x, y, 0, 1): # |.
-                possible_moves.append((x, y, 0, 1))
-                self.future_paths += 1
-            if self.game_grid.is_valid_line(x, y, -1, 1): #./
-                possible_moves.append((x, y, -1, 1))
-                self.future_paths += 1
-            if self.game_grid.is_valid_line(x, y, -1, 0): # .–
-                possible_moves.append((x, y, -1, 0))
-                self.future_paths += 1
-            if self.game_grid.is_valid_line(x, y, -1, -1): # '\
-                possible_moves.append((x, y, -1, -1))
-                self.future_paths += 1
-            if self.game_grid.is_valid_line(x, y, 0, -1): # |'
-                possible_moves.append((x, y, 0, -1))
-                self.future_paths += 1
-            if self.game_grid.is_valid_line(x, y, 1, -1): # /'
-                possible_moves.append((x, y, 1, -1))
-                self.future_paths += 1
-            if self.game_grid.is_valid_line(x, y, 1, 0): # –.
-                possible_moves.append((x, y, 1, 0))
-                self.future_paths += 1
+            line_candidates = [
+                Line(x, y, 1, 1),
+                Line(x, y, 0, 1),
+                Line(x, y, -1, 1),
+                Line(x, y, -1, 0),
+                Line(x, y, -1, -1),
+                Line(x, y, 0, -1),
+                Line(x, y, 1, -1),
+                Line(x, y, 1, 0)
+            ]
+            for line in line_candidates:
+                line.normalize()
+                if self.game_grid.is_valid_line(line) and line not in possible_moves:
+                    possible_moves.append(line)
+                    self.future_paths += 1
 
         # Store each possible move in the outfile, preceeded by the path so far
         with open(self.outfile, "a") as outputfile:
             for move in possible_moves:
                 if previous_moves is not None:
                     for previous_move in previous_moves:
-                        outputfile.write(",".join(map(str, previous_move)) + "\n")
-                outputfile.write(",".join(map(str, move)) + "\n")
+                        outputfile.write(f"{previous_move.x},{previous_move.y},{previous_move.x_heading},{previous_move.y_heading}\n")
+                outputfile.write("{move.x},{move.y},{move.x_heading},{move.y_heading}\n")
                 outputfile.write(",,,\n")
                 outputfile.flush()
         return len(possible_moves) > 0

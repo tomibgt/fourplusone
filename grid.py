@@ -1,4 +1,158 @@
 from __future__ import annotations
+from collections import namedtuple
+import bisect
+
+class LineSegment:
+
+    def __init__(self, x: int, y: int, x_heading: int, y_heading: int):
+
+        if (x_heading, y_heading) not in {
+            (-1, 0), (1, 0), (0, -1), (0, 1),
+            (-1, -1), (-1, 1), (1, -1), (1, 1)
+        }:
+            raise ValueError("x_heading and y_heading must each be -1, 0, or 1")
+
+        self.x: int = x
+        self.y: int = y
+        self.x_heading: int = x_heading
+        self.y_heading: int = y_heading
+
+    def __lt__(self, other):
+        if not isinstance(other, LineSegment):
+            return NotImplemented
+        if self.x < other.x:
+            return True
+        if self.y < other.y:
+            return True
+        if self.x_heading < other.x_heading:
+            return True
+        if self.y_heading < other.y_heading:
+            return True
+        return False
+
+    def __le__(self, other):
+        if not isinstance(other, LineSegment):
+            return NotImplemented
+        if self.__lt__(other) or self.__eq__(other):
+            return True
+        return False
+
+    def __eq__(self, other):
+        if not isinstance(other, LineSegment):
+            return NotImplemented
+        return (self.x, self.y, self.x_heading, self.y_heading) == \
+               (other.x, other.y, other.x_heading, other.y_heading)
+
+    def __ne__(self, other):
+        if not isinstance(other, LineSegment):
+            return NotImplemented
+        return (self.x, self.y, self.x_heading, self.y_heading) != \
+               (other.x, other.y, other.x_heading, other.y_heading)
+
+    def __gt__(self, other):
+        if not isinstance(other, LineSegment):
+            return NotImplemented
+        return not self.__le__(other)
+
+    def __ge__(self, other):
+        if not isinstance(other, LineSegment):
+            return NotImplemented
+        return not self.__lt__(other)
+    
+    def __hash__(self):
+        return hash((self.x, self.y, self.x_heading, self.y_heading))
+    
+    def __str__(self):
+        return f"({self.x}, {self.y}: {self.x_heading}, {self.y_heading})"
+
+    def __repr__(self):
+        return f"({self.x}, {self.y}: {self.x_heading}, {self.y_heading})"
+
+    def normalize(self):
+        """
+        Normalize this line so that x_heading is 1, with the exception of
+        it being 0, in which case y_heading must be 1.
+
+        Args:
+            x (int): X-coordinate of the starting point.
+            y (int): Y-coordinate of the starting point.
+            x2 (int): X-coordinate of the end point.
+            y2 (int): Y-coordinate of the end point.
+        """
+        if self.x_heading == -1:
+            self.x_heading = 1
+            self.x -= 1
+            if self.y_heading == -1:
+                self.y_heading = 1
+                self.y -= 1
+            elif self.y_heading == 1:
+                self.y_heading = -1
+                self.y += 1
+        elif self.x_heading == 0 and self.y_heading == -1:
+            self.y_heading = 1
+            self.y -= 1
+
+class Line:
+
+    Point = namedtuple('Point', ['x', 'y'])
+
+    def __init__(self, x: int, y: int, x_heading: int, y_heading: int):
+        if (x_heading, y_heading) not in {
+            (-1, 0), (1, 0), (0, -1), (0, 1),
+            (-1, -1), (-1, 1), (1, -1), (1, 1)
+        }:
+            raise ValueError("x_heading and y_heading must each be -1, 0, or 1")
+        
+        self.x: int = x
+        self.y: int = y
+        self.x_heading: int = x_heading
+        self.y_heading: int = y_heading
+
+    def get_intersections(self):
+        return [self.Point(self.x + i * self.x_heading, self.y + i * self.y_heading) for i in range(5)]
+
+    def get_segments(self):
+        """
+        Returns the line segments that compose this line.
+
+        Returns:
+            list[LineSegment]: The list of normalized segments.
+        """
+        reva: list[LineSegment] = []
+        x = self.x
+        y = self.y
+        for i in range(4):
+            segment = LineSegment(x, y, self.x_heading, self.y_heading)
+            segment.normalize()
+            reva.append(segment)
+            x += self.x_heading
+            y += self.y_heading
+        return reva
+        
+    def normalize(self):
+        """
+        Normalize this line so that x_heading is 1, with the exception of
+        it being 0, in which case y_heading must be 1.
+
+        Args:
+            x (int): X-coordinate of the starting point.
+            y (int): Y-coordinate of the starting point.
+            x2 (int): X-coordinate of the end point.
+            y2 (int): Y-coordinate of the end point.
+        """
+        if self.x_heading == -1:
+            self.x_heading = 1
+            self.x -= 4
+            if self.y_heading == -1:
+                self.y_heading = 1
+                self.y -= 4
+            elif self.y_heading == 1:
+                self.y_heading = -1
+                self.y += 4
+        elif self.x_heading == 0 and self.y_heading == -1:
+            self.y_heading = 1
+            self.y -= 4
+
 
 class Grid:
     """This class models the grid and other elements of the 4+1 solitaire."""
@@ -12,7 +166,7 @@ class Grid:
     def __init__(self):
         self.line_count = 0
         self.intersections: dict[tuple[int, int], bool] = {}
-        self.line_segments: dict[tuple[int, int, int, int]] = {}
+        self.line_segments: list[LineSegment] = []
         """Initialize the grid with the initial plus laid on it."""
         for i in range(3):
             self._fill_intersection(  i  ,   0  )
@@ -28,62 +182,36 @@ class Grid:
             self._fill_intersection( -1  , i + 6)
             self._fill_intersection( -4  , i + 3)
 
-    def add_line_to_grid(self, x: int, y: int, x_heading: int, y_heading: int):
+    def add_line_to_grid(self, line: Line):
         """
-        Add a line to the grid, starting from (x, y) and extending in the direction
-        defined by (x_heading, y_heading). Each heading must be -1, 0, or 1.
+        Add a line to the grid.
 
         Args:
-            x (int): X-coordinate of the starting point.
-            y (int): Y-coordinate of the starting point.
-            x_heading (int): Direction along the X-axis: -1 (left), 0 (vertical), 1 (right).
-            y_heading (int): Direction along the Y-axis: -1 (up), 0 (horizontal), 1 (down).
-
-        Raises:
-            ValueError: If the heading isn't specified correctly.
+            line (Line): The line to be added.
         """
 
-        if (x_heading, y_heading) not in {
-            (-1, 0), (1, 0), (0, -1), (0, 1),
-            (-1, -1), (-1, 1), (1, -1), (1, 1),
-            (0, 0)
-        }:
-            raise ValueError("x_heading and y_heading must each be -1, 0, or 1")
-        
-        if self.is_valid_line(x, y, x_heading, y_heading):
-            for i in range(5):
-                xi = x + i * x_heading
-                yi = y + i * y_heading
-                self._fill_intersection(xi, yi)
-
-                if i < 4:
-                    next_x = x + (i + 1) * x_heading
-                    next_y = y + (i + 1) * y_heading
-                    sx1, sy1, sx2, sy2 = self._normalize_segment(xi, yi, next_x, next_y)
-                    self._add_line_segment(sx1, sy1, sx2, sy2)
+        if self.is_valid_line(line):
+            for intersection in line.get_intersections():
+                self._fill_intersection(intersection.x, intersection.y)
+            segments = line.get_segments()
+            for segment in segments:
+                segment.normalize()
+                self._add_line_segment(segment)
             self.line_count += 1
 
-    def _add_line_segment(self, x: int, y: int, x2: int, y2: int):
+    def _add_line_segment(self, segment: LineSegment):
         """
-        Adds a line segment to the grid (x, y) to (x2, y2).
-
-        x2 should be one bigger than x, except if they are equal,
-        in which case y2 should be one bigger than y.
+        Adds a line segment to the grid.
 
         Args:
-            x (int): X-coordinate of the starting point.
-            y (int): Y-coordinate of the starting point.
-            x2 (int): X-coordinate of the end point.
-            y2 (int): Y-coordinate of the end point.
-
-        Raises:
-            ValueError: If the segment does not follow a valid one-unit direction.
+            segment (LineSegment): The segment to be added.
         """
-        xdiff = x2 - x
-        ydiff = y2 - y
-        if abs(xdiff) > 1 or abs(ydiff) > 1 or xdiff == -1 or (xdiff == 0 and ydiff != 1):
-            raise ValueError("Segment should be pointed straight or diagonally rightwards or straight down.")
-        self.line_segments[(x, y, x2, y2)] = True
+        if not isinstance(segment, LineSegment):
+            return NotImplemented
+        #bisect.insort(self.line_segments, segment)
+        self.line_segments.append(segment)
+        #self._fill_intersection(segment.x, segment.y)
+        #self._fill_intersection(segment.x+segment.x_heading, segment.y+segment.y_heading)
 
     def _fill_intersection(self, x: int, y: int):
         """
@@ -97,7 +225,6 @@ class Grid:
             y (int): Y-coordinate of the intersection.
         """
         self.intersections[(x, y)] = True
-        self.intersections = dict(sorted(self.intersections.items()))
         if x > Grid.x_max:
             Grid.x_max = x
         if y > Grid.y_max:
@@ -107,32 +234,20 @@ class Grid:
         if y < Grid.y_min:
             Grid.y_min = y
 
-    def _has_segment(self, x: int, y: int, x2: int, y2:int) -> bool:
+    def get_segments(self):
+        return self.line_segments
+    
+    def _has_segment(self, segment: LineSegment) -> bool:
         """
-        Checks whether the segment from (x, y) to (x2, y2) is occupied.
-
-        x2 should be one bigger than x, except if they are equal,
-        in which case y2 should be one bigger than y.
+        Checks whether the segment is occupied on the grid.
 
         Args:
-            x (int): X-coordinate of the starting point.
-            y (int): Y-coordinate of the starting point.
-            x2 (int): X-coordinate of the end point.
-            y2 (int): Y-coordinate of the end point.
+            segment (LineSegment): The segment.
 
         Returns:
             bool: True if the segment is occupied, False otherwise.
-
-        Raises:
-            ValueError: If the segment would not follow a valid one-unit direction.
         """
-        xdiff = x2 - x
-        ydiff = y2 - y
-        if abs(xdiff) > 1 or abs(ydiff) > 1 or xdiff == -1 or (xdiff == 0 and ydiff != 1):
-            raise ValueError("Segment can only be pointed rightwards or down.")
-        if(x, y, x2, y2) in self.line_segments:
-            return self.line_segments[(x, y, x2, y2)]
-        return False
+        return segment in self.line_segments
 
     def is_filled(self, x: int, y: int) -> bool:
         """
@@ -149,65 +264,30 @@ class Grid:
             return self.intersections[(x,y)]
         return False
     
-    def is_valid_line(self, x: int, y: int, x_heading: int, y_heading: int) -> bool:
+    def is_valid_line(self, line: Line) -> bool:
         """
-        Check if a line, starting from (x, y) and heading towards
-        (x_heading, y_heading) would be valid to place according to the
+        Check if a the given line would be valid to place according to the
         game rules.
 
         Args:
-            x (int): X-coordinate of the starting point.
-            y (int): Y-coordinate of the starting point.
-            x_heading (int): Direction along the X-axis: -1 (left), 0 (vertical), 1 (right).
-            y_heading (int): Direction along the Y-axis: -1 (up), 0 (horizontal), 1 (down).
+            line (Line): The proposed line
 
-        Raises:
-            ValueError: If the heading isn't specified correctly.
+        Returns:
+            True, if the line is valid. False otherwise.
         """
-        if abs(x_heading) > 1 or abs(y_heading) > 1:
-            raise ValueError("x_heading and y_heading must each be -1, 0, or 1")
-
         filled = 0
         empty = 0
-        for i in range(5):
-            if self.is_filled(x + (i * x_heading), y + (i * y_heading)):
+        for (x, y) in line.get_intersections():
+            if self.is_filled(x, y):
                 filled += 1
             else:
                 empty +=1
-            if i < 4:
-                sx1, sy1, sx2, sy2 = self._normalize_segment(x + (i * x_heading), y + (i * y_heading), x + ((i + 1) * x_heading), y + ((i + 1) * y_heading))
-                if self._has_segment(sx1, sy1, sx2, sy2):
-                    return False
         if filled != 4:
             return False
+
+        for segment in line.get_segments():
+            if segment in self.line_segments:
+                return False
+            
         return True
 
-    def _normalize_segment(self, x: int, y: int, x2: int, y2: int) -> tuple[int, int, int, int]:
-        """
-        Normalize a line segment so that x2 is one bigger than x,
-        except if they are equal, in which case y2 is one bigger than y.
-
-        Args:
-            x (int): X-coordinate of the starting point.
-            y (int): Y-coordinate of the starting point.
-            x2 (int): X-coordinate of the end point.
-            y2 (int): Y-coordinate of the end point.
-
-        Returns:
-            tuple[int, int, int, int]: A tuple of the normalized segment coordinates.
-
-        Raises:
-            ValueError: If the given coordinate combination is incomprehendable.
-        """
-        if abs(x-x2) > 1 or abs(y-y2) > 1 or (x == x2 and y == y2):
-            raise ValueError("The segment must be one unit long, horizontal, vertical or diagonal.")
-        ret_x = x
-        ret_y = y
-        ret_x2 = x2
-        ret_y2 = y2
-        if x > x2 or (x == x2 and y > y2):
-            ret_x = x2
-            ret_x2 = x
-            ret_y = y2
-            ret_y2 = y
-        return ret_x, ret_y, ret_x2, ret_y2

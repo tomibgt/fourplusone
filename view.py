@@ -40,18 +40,15 @@ class View:
                                                 ((y-self.resolver.game_grid.y_min)*scale)+5+y_offset),
                                         color="black",
                                         radius=2)
-                    
-        for segment in self.resolver.game_grid.line_segments.keys():
-            x = segment[0]
-            y = segment[1]
-            x2 = segment[2]
-            y2 = segment[3]
+
+        seggies = self.resolver.game_grid.get_segments()
+        for segment in seggies:
             pygame.draw.line(surface=self.screen,
                             color="black",
-                            start_pos=Vector2(((x-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
-                                                ((y-self.resolver.game_grid.y_min)*scale)+5+y_offset),
-                            end_pos=Vector2(((x2-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
-                                                ((y2-self.resolver.game_grid.y_min)*scale)+5+y_offset))
+                            start_pos=Vector2(((segment.x-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
+                                                ((segment.y-self.resolver.game_grid.y_min)*scale)+5+y_offset),
+                            end_pos=Vector2(((segment.x+segment.x_heading-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
+                                                ((segment.y+segment.y_heading-self.resolver.game_grid.y_min)*scale)+5+y_offset))
 
         punctuator = "!"
         if self.resolver.is_still_going():
