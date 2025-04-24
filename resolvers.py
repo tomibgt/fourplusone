@@ -1,5 +1,6 @@
 from __future__ import annotations
-
+from datetime import datetime, timedelta
+import json
 import random
 import os
 import sys
@@ -109,13 +110,29 @@ class RandomResolver(Resolver):
     
 class UltimateResolver(Resolver):
 
-    infile: str  = None
+    infile: str   = None
     #infile: str  = "resolveIN.log"
-    outfile: str = "resolveOUT.log"
-    current_path: int = 0
-    total_paths: int  = 0
-    future_paths: int = 0
-    ticker: int       = 1
+    outfile: str  = "resolveOUT.log"
+    tempfile: str = "resolveTEMP.log"
+    metafile: str = "resolveDATA.log"
+
+    def __init__(self):
+        super().__init__()
+        self.current_path: int   = 0
+        self.total_paths: int    = 0
+        self.future_paths: int   = 0
+        self.ticker: int         = 1
+        self.starttime: datetime = datetime.now()
+        self.elapsed: timedelta  = self.starttime - self.starttime
+        if os.path.exists(self.metafile):
+            with open(self.metafile, "r") as metafile:
+                data = json.load(metafile)
+                self.elapsed = timedelta(seconds=data["elapsed"])
+                self.current_path = int(data["current_path"])
+                self.total_paths = int(data["total_paths"])
+                self.future_paths = int(data["future_paths"])
+
+
 
     def add_a_line(self) -> bool:
         """
@@ -157,6 +174,12 @@ class UltimateResolver(Resolver):
             self.find_new_lines(None)
             lines_available = True
         self.view.refresh()
+
+        if not lines_available:
+            self.stop_time: datetime = datetime.now()
+            elapsed_time = self.stop_time - self.starttime
+            print("Calculation complete!")
+            print(f"Time used: {elapsed_time}")
 
         return lines_available
 
@@ -223,9 +246,28 @@ class UltimateResolver(Resolver):
         return len(possible_moves) > 0
     
     def shut_down_procedure(self):
-        with open(self.outfile, "a") as outputfile:
+        self.stop_time: datetime = datetime.now()
+        elapsed = self.stop_time - self.starttime
+        with open(self.tempfile, "w") as tempfile:
             for line in self.file_handle:
-                outputfile.write(f"{line}")
-            outputfile.flush()
+                tempfile.write(f"{line}")
+            self.file_handle.close()
+            with open(self.outfile, "r") as outputfile:
+                for line in outputfile:
+                    tempfile.write(f"{line}")
+            tempfile.flush()
+        os.rename(self.tempfile, self.outfile)
+        with open(self.metafile, "w") as metafile:
+            data = {
+                "elapsed": (elapsed+self.elapsed).total_seconds(),
+                "current_path": self.current_path,
+                "total_paths": self.total_paths,
+                "future_paths": self.future_paths
+            }
+            json.dump(data, metafile, indent=4)
+            metafile.flush()
+        print("Stopping processing.")
+        print(f"Processed for {elapsed} this session.")
+        print(f"Altogehter processed for {elapsed+self.elapsed}")
         pygame.quit()
         sys.exit()
