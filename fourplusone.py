@@ -11,11 +11,8 @@ def main():
     width: int         = 600 # Screen width
     height: int        = 400 # Screen height
 
-    #executable_name = os.path.basename(sys.executable)
-    #if "pythonw" not in executable_name:
-    #    print(f"{executable_name}")
-    #    print("Use command: pythonw fourplusone.py --random-resolve|--ultimate-resolve")
-    #    sys.exit(1)
+    pygame.init()
+    view     = View(width, height)
 
     parser = argparse.ArgumentParser(
         description="Run the four plus one solitaire."
@@ -36,10 +33,9 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    pygame.init()
 
-    view     = View(width, height)
     resolver.set_view(view)
+    view.refresh()
     #resolver = UltimateResolver(view=view)
 
     running = True

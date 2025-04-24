@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 import os
+import sys
 import pygame
 
 from grid import *
@@ -136,20 +137,21 @@ class UltimateResolver(Resolver):
         self.future_paths = 1 # Counter for how many new paths have been stored in the output file
         self.current_path = 1 # Counter for how many paths have been processed from the input file
         if self.infile is not None:
-            with open(self.infile, "r") as file_handle:
+            with open(self.infile, "r") as self.file_handle:
                 previous_lines = []
-                for line in file_handle:
-                    stored_line = Line(int(val) if val.strip() != '' else None for val in line.strip().split(","))
-                    # Once we get to the end of a path, find the possible moves there and store
-                    if stored_line[0] is None:
+                for line in self.file_handle:
+                    x, y, x_heading, y_heading = line.strip().split(",")
+                    if x != "":
+                        #stored_line = Line(int(val) if val.strip() != '' else None for val in line.strip().split(","))
+                        stored_line = Line(int(x), int(y), int(x_heading), int(y_heading))
+                        previous_lines.append(stored_line)
+                    else:
                         self.current_path += 1
                         if self.find_new_lines(previous_lines):
                             lines_available = True
                         else:
                             self.still_going = False
                         previous_lines = []
-                    else:
-                        previous_lines.append(stored_line)
         # If there is no input file, get started with new files
         else:
             self.find_new_lines(None)
@@ -187,9 +189,6 @@ class UltimateResolver(Resolver):
             self.ticker += 1
             if self.ticker > 3:
                 self.view.refresh()
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
                 self.ticker = 1
             line_candidates = [
                 Line(x, y, 1, 1),
@@ -213,8 +212,20 @@ class UltimateResolver(Resolver):
                 if previous_moves is not None:
                     for previous_move in previous_moves:
                         outputfile.write(f"{previous_move.x},{previous_move.y},{previous_move.x_heading},{previous_move.y_heading}\n")
-                outputfile.write("{move.x},{move.y},{move.x_heading},{move.y_heading}\n")
+                outputfile.write(f"{move.x},{move.y},{move.x_heading},{move.y_heading}\n")
                 outputfile.write(",,,\n")
                 outputfile.flush()
+                
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.shut_down_procedure()
+
         return len(possible_moves) > 0
     
+    def shut_down_procedure(self):
+        with open(self.outfile, "a") as outputfile:
+            for line in self.file_handle:
+                outputfile.write(f"{line}")
+            outputfile.flush()
+        pygame.quit()
+        sys.exit()
