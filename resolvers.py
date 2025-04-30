@@ -13,10 +13,10 @@ class Resolver:
 
     #game_grid: Grid = None
 
-    def __init__(self, grid: Grid = None, view: View = None):
-        if grid is None:
-            grid = Grid()
-        self.game_grid   = grid
+    def __init__(self, gridi: Grid = None, view: View = None):
+        if gridi is None:
+            gridi = Grid()
+        self.game_grid   = gridi
         self.still_going = True
         self.view        = view
         if self.view is not None:
@@ -25,7 +25,7 @@ class Resolver:
     def is_still_going(self) -> bool:
         return self.still_going
 
-    def add_a_line() -> bool:
+    def add_a_line(self) -> bool:
         pass
 
     def set_view(self, view: View):
@@ -42,65 +42,65 @@ class RandomResolver(Resolver):
     def add_a_line(self) -> bool:
         opening   = True
         move_made = False
-        x = None
-        y = None
-        x2 = None
-        y2 = None
+        x_heading = None
+        y_heading = None
+        print("Let's a while...")
         while opening and not move_made:
+            print("loop")
             opening = False
             for target in self.game_grid.intersections:
-                x = target[0]
-                y = target[1]
-                if self.game_grid.is_valid_line(Line(x, y, 0, -1)):
+                print(f"target: {target}")
+                if self.game_grid.is_valid_line(Line(target, 0, -1)):
                     opening = True
-                    x2 = 0
-                    y2 = -1
+                    x_heading = 0
+                    y_heading = -1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(Line(x, y, 1, -1)):
+                if self.game_grid.is_valid_line(Line(target, 1, -1)):
                     opening = True
-                    x2 = 1
-                    y2 = -1
+                    x_heading = 1
+                    y_heading = -1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(Line(x, y, 1, 0)):
+                if self.game_grid.is_valid_line(Line(target, 1, 0)):
                     opening = True
-                    x2 = 1
-                    y2 = 0
+                    x_heading = 1
+                    y_heading = 0
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(Line(x, y, 1, 1)):
+                if self.game_grid.is_valid_line(Line(target, 1, 1)):
                     opening = True
-                    x2 = 1
-                    y2 = 1
+                    x_heading = 1
+                    y_heading = 1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(Line(x, y, 0, 1)):
+                if self.game_grid.is_valid_line(Line(target, 0, 1)):
                     opening = True
-                    x2 = 0
-                    y2 = 1
+                    x_heading = 0
+                    y_heading = 1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(Line(x, y, -1, 1)):
+                if self.game_grid.is_valid_line(Line(target, -1, 1)):
                     opening = True
-                    x2 = -1
-                    y2 = 1
+                    x_heading = -1
+                    y_heading = 1
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(Line(x, y, -1, 0)):
+                if self.game_grid.is_valid_line(Line(target, -1, 0)):
                     opening = True
-                    x2 = -1
-                    y2 = 0
+                    x_heading = -1
+                    y_heading = 0
                     if random.choice([True, False]):
                         break
-                if self.game_grid.is_valid_line(Line(x, y, -1, -1)):
+                if self.game_grid.is_valid_line(Line(target, -1, -1)):
                     opening = True
-                    x2 = -1
-                    y2 = -1
+                    x_heading = -1
+                    y_heading = -1
                     if random.choice([True, False]):
                         break
-            if x2 is not None:
-                line: Line = Line(x, y, x2, y2)
+                    
+            if x_heading is not None:
+                line: Line = Line(target, x_heading, y_heading)
                 self.game_grid.add_line_to_grid(line)
                 move_made = True
             self.still_going = move_made
@@ -154,13 +154,13 @@ class UltimateResolver(Resolver):
         self.future_paths = 1 # Counter for how many new paths have been stored in the output file
         self.current_path = 1 # Counter for how many paths have been processed from the input file
         if self.infile is not None:
-            with open(self.infile, "r") as self.file_handle:
+            with open(self.infile, "r") as self.infile_handle:
                 previous_lines = []
-                for line in self.file_handle:
+                for line in self.infile_handle:
                     x, y, x_heading, y_heading = line.strip().split(",")
                     if x != "":
                         #stored_line = Line(int(val) if val.strip() != '' else None for val in line.strip().split(","))
-                        stored_line = Line(int(x), int(y), int(x_heading), int(y_heading))
+                        stored_line = Line(Intersection(x, y), int(x_heading), int(y_heading))
                         previous_lines.append(stored_line)
                     else:
                         self.current_path += 1
@@ -206,25 +206,23 @@ class UltimateResolver(Resolver):
         # Find out the possible next moves and store them as new paths
         possible_moves: list[Line] = []
         for target in self.game_grid.intersections:
-            x = target[0]
-            y = target[1]
-            Grid.focus = [x, y] # Tell the viewer what intersection are we interested in now
+            Grid.focus = target # Tell the viewer what intersection are we interested in now
             self.ticker += 1
             if self.ticker > 3:
                 self.view.refresh()
                 self.ticker = 1
             line_candidates = [
-                Line(x, y, 1, 1),
-                Line(x, y, 0, 1),
-                Line(x, y, -1, 1),
-                Line(x, y, -1, 0),
-                Line(x, y, -1, -1),
-                Line(x, y, 0, -1),
-                Line(x, y, 1, -1),
-                Line(x, y, 1, 0)
+                Line(target, 1, 1),
+                Line(target, 0, 1),
+                Line(target, -1, 1),
+                Line(target, -1, 0),
+                Line(target, -1, -1),
+                Line(target, 0, -1),
+                Line(target, 1, -1),
+                Line(target, 1, 0)
             ]
+            line_candidates.sort()
             for line in line_candidates:
-                line.normalize()
                 if self.game_grid.is_valid_line(line) and line not in possible_moves:
                     possible_moves.append(line)
                     self.future_paths += 1
@@ -234,8 +232,8 @@ class UltimateResolver(Resolver):
             for move in possible_moves:
                 if previous_moves is not None:
                     for previous_move in previous_moves:
-                        outputfile.write(f"{previous_move.x},{previous_move.y},{previous_move.x_heading},{previous_move.y_heading}\n")
-                outputfile.write(f"{move.x},{move.y},{move.x_heading},{move.y_heading}\n")
+                        outputfile.write(f"{previous_move.intersection.x},{previous_move.intersection.y},{previous_move.x_heading},{previous_move.y_heading}\n")
+                outputfile.write(f"{move.intersection.x},{move.intersection.y},{move.x_heading},{move.y_heading}\n")
                 outputfile.write(",,,\n")
                 outputfile.flush()
                 
@@ -249,9 +247,9 @@ class UltimateResolver(Resolver):
         self.stop_time: datetime = datetime.now()
         elapsed = self.stop_time - self.starttime
         with open(self.tempfile, "w") as tempfile:
-            for line in self.file_handle:
+            for line in self.infile_handle:
                 tempfile.write(f"{line}")
-            self.file_handle.close()
+            self.infile_handle.close()
             with open(self.outfile, "r") as outputfile:
                 for line in outputfile:
                     tempfile.write(f"{line}")

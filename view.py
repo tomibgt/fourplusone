@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 import pygame
 from pygame import Rect
 from pygame.math import Vector2
+from grid import Intersection
 if TYPE_CHECKING:
     from resolvers import Resolver
 
@@ -32,9 +33,10 @@ class View:
                                     ((self.resolver.game_grid.focus[1]-self.resolver.game_grid.y_min)*scale)+2+y_offset, 
                                     7, 7))
 
+        print(f"{self.resolver.game_grid.intersections}")
         for x in range(self.resolver.game_grid.x_min, self.resolver.game_grid.x_max+1):
             for y in range(self.resolver.game_grid.y_min, self.resolver.game_grid.y_max+1):
-                if self.resolver.game_grid.is_filled(x, y):
+                if self.resolver.game_grid.is_filled(Intersection(x, y)):
                     pygame.draw.circle(surface=self.screen, 
                                         center=Vector2(((x-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
                                                 ((y-self.resolver.game_grid.y_min)*scale)+5+y_offset),
@@ -45,10 +47,10 @@ class View:
         for segment in seggies:
             pygame.draw.line(surface=self.screen,
                             color="black",
-                            start_pos=Vector2(((segment.x-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
-                                                ((segment.y-self.resolver.game_grid.y_min)*scale)+5+y_offset),
-                            end_pos=Vector2(((segment.x+segment.x_heading-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
-                                                ((segment.y+segment.y_heading-self.resolver.game_grid.y_min)*scale)+5+y_offset))
+                            start_pos=Vector2(((segment.intersection.x-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
+                                                ((segment.intersection.y-self.resolver.game_grid.y_min)*scale)+5+y_offset),
+                            end_pos=Vector2(((segment.intersection.x+segment.intersection.x_heading-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
+                                                ((segment.intersection.y+segment.y_heading-self.resolver.game_grid.y_min)*scale)+5+y_offset))
 
         punctuator = "!"
         if self.resolver.is_still_going():
@@ -62,5 +64,8 @@ class View:
         #self.clock.tick(60)
         pygame.display.flip()
 
+        return
+
     def set_resolver(self, resolver: Resolver):
         self.resolver = resolver
+        return
