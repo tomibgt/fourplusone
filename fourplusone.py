@@ -4,6 +4,7 @@ import argparse
 import pygame
 from resolvers import *
 from view import View
+from grid import *
 
 def main():
 

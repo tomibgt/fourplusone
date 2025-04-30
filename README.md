@@ -51,3 +51,22 @@ trying to go through all the possible iterations of the game.
 You need to have the pygame package installed.
 
 Run the game with command pythonw resolve.py
+
+# The initial plus shape
+
+|        | -5 | -4 | -3 | -2 | -1 |  0 |  1 |  2 |  3 |  4 |  5 |  6 |
+|:------:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| **-1** |    |    |    |    |    |    |    |    |    |    |    |    |
+|  **0** |    |    |    |    |  X |  X |  X |  X |    |    |    |    |
+|  **1** |    |    |    |    |  X |    |    |  X |    |    |    |    |
+|  **2** |    |    |    |    |  X |    |    |  X |    |    |    |    |
+|  **3** |    |  X |  X |  X |  X |    |    |  X |  X |  X |  X |    |
+|  **4** |    |  X |    |    |    |    |    |    |    |    |  X |    |
+|  **5** |    |  X |    |    |    |    |    |    |    |    |  X |    |
+|  **6** |    |  X |  X |  X |  X |    |    |  X |  X |  X |  X |    |
+|  **7** |    |    |    |    |  X |    |    |  X |    |    |    |    |
+|  **8** |    |    |    |    |  X |    |    |  X |    |    |    |    |
+|  **9** |    |    |    |    |  X |  X |  X |  X |    |    |    |    |
+| **10** |    |    |    |    |    |    |    |    |    |    |    |    |
+
+
