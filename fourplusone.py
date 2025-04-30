@@ -4,6 +4,7 @@ import argparse
 import pygame
 from resolvers import *
 from view import View
+from grid import *
 
 def main():
 
@@ -42,7 +43,9 @@ def main():
 
     while running:
 
+        print("AND...")
         opening = resolver.add_a_line()
+        print("...ROUND!")
 
         # Poll for events
         # pygame.QUIT event means the user clicked X to close your window
