@@ -48,7 +48,7 @@ class View:
                             color="black",
                             start_pos=Vector2(((segment.intersection.x-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
                                                 ((segment.intersection.y-self.resolver.game_grid.y_min)*scale)+5+y_offset),
-                            end_pos=Vector2(((segment.intersection.x+segment.intersection.x_heading-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
+                            end_pos=Vector2(((segment.intersection.x+segment.x_heading-self.resolver.game_grid.x_min)*scale)+5+x_offset, 
                                                 ((segment.intersection.y+segment.y_heading-self.resolver.game_grid.y_min)*scale)+5+y_offset))
 
         punctuator = "!"

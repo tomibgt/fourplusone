@@ -43,9 +43,7 @@ def main():
 
     while running:
 
-        print("AND...")
         opening = resolver.add_a_line()
-        print("...ROUND!")
 
         # Poll for events
         # pygame.QUIT event means the user clicked X to close your window

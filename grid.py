@@ -172,7 +172,7 @@ class Line:
         }:
             raise ValueError("x_heading and y_heading must each be -1, 0, or 1")
         
-        self.intersection: Intersection = intersection
+        self.intersection: Intersection = Intersection(intersection.x, intersection.y)
         self.x_heading: int = x_heading
         self.y_heading: int = y_heading
         self._normalize()
@@ -362,6 +362,7 @@ class Grid:
         reva = []
         for insect in self.intersections:
             reva.append(Intersection(insect.x, insect.y))
+        return reva
 
     def get_segments(self):
         return self.line_segments
