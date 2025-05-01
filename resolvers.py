@@ -40,59 +40,60 @@ class RandomResolver(Resolver):
         move_made = False
         x_heading = None
         y_heading = None
-        print("Let's a while...")
         while opening and not move_made:
             opening = False
-            for target in self.game_grid.get_intersections():
-                if self.game_grid.is_valid_line(Line(target, 0, -1)):
-                    opening = True
-                    x_heading = 0
-                    y_heading = -1
-                    if random.choice([True, False]):
-                        break
-                if self.game_grid.is_valid_line(Line(target, 1, -1)):
-                    opening = True
-                    x_heading = 1
-                    y_heading = -1
-                    if random.choice([True, False]):
-                        break
-                if self.game_grid.is_valid_line(Line(target, 1, 0)):
-                    opening = True
-                    x_heading = 1
-                    y_heading = 0
-                    if random.choice([True, False]):
-                        break
-                if self.game_grid.is_valid_line(Line(target, 1, 1)):
-                    opening = True
-                    x_heading = 1
-                    y_heading = 1
-                    if random.choice([True, False]):
-                        break
-                if self.game_grid.is_valid_line(Line(target, 0, 1)):
-                    opening = True
-                    x_heading = 0
-                    y_heading = 1
-                    if random.choice([True, False]):
-                        break
-                if self.game_grid.is_valid_line(Line(target, -1, 1)):
-                    opening = True
-                    x_heading = -1
-                    y_heading = 1
-                    if random.choice([True, False]):
-                        break
-                if self.game_grid.is_valid_line(Line(target, -1, 0)):
-                    opening = True
-                    x_heading = -1
-                    y_heading = 0
-                    if random.choice([True, False]):
-                        break
-                if self.game_grid.is_valid_line(Line(target, -1, -1)):
-                    opening = True
-                    x_heading = -1
-                    y_heading = -1
-                    if random.choice([True, False]):
-                        break
-                    
+            while True:
+                for target in self.game_grid.get_intersections():
+                    if self.game_grid.is_valid_line(Line(target, 0, -1)):
+                        opening = True
+                        x_heading = 0
+                        y_heading = -1
+                        if random.choice([True, False]):
+                            break
+                    if self.game_grid.is_valid_line(Line(target, 1, -1)):
+                        opening = True
+                        x_heading = 1
+                        y_heading = -1
+                        if random.choice([True, False]):
+                            break
+                    if self.game_grid.is_valid_line(Line(target, 1, 0)):
+                        opening = True
+                        x_heading = 1
+                        y_heading = 0
+                        if random.choice([True, False]):
+                            break
+                    if self.game_grid.is_valid_line(Line(target, 1, 1)):
+                        opening = True
+                        x_heading = 1
+                        y_heading = 1
+                        if random.choice([True, False]):
+                            break
+                    if self.game_grid.is_valid_line(Line(target, 0, 1)):
+                        opening = True
+                        x_heading = 0
+                        y_heading = 1
+                        if random.choice([True, False]):
+                            break
+                    if self.game_grid.is_valid_line(Line(target, -1, 1)):
+                        opening = True
+                        x_heading = -1
+                        y_heading = 1
+                        if random.choice([True, False]):
+                            break
+                    if self.game_grid.is_valid_line(Line(target, -1, 0)):
+                        opening = True
+                        x_heading = -1
+                        y_heading = 0
+                        if random.choice([True, False]):
+                            break
+                    if self.game_grid.is_valid_line(Line(target, -1, -1)):
+                        opening = True
+                        x_heading = -1
+                        y_heading = -1
+                        if random.choice([True, False]):
+                            break
+                if not opening or x_heading is not None:
+                    break
             if x_heading is not None:
                 line: Line = Line(target, x_heading, y_heading)
                 self.game_grid.add_line_to_grid(line)

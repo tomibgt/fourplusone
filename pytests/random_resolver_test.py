@@ -71,14 +71,14 @@ def test_add_a_line():
         resolver = resolvers.RandomResolver()
         resolver.set_view(mock_view)
 
-        resolver.add_a_line()
+        output = resolver.add_a_line()
 
-        # mock_grid.add_line_to_grid.assert_any_call(grid.Line(grid.Intersection(-4, 3), 1, 0))
+        mock_grid.is_valid_line.assert_any_call, "The resolver is not checking any possible lines."
 
         added_lines = [call.args[0] for call in mock_grid.add_line_to_grid.call_args_list]
         assert len(added_lines) == 1, "Should have added one line."
         assert added_lines[0] in possible_starters, f"Invalid line {added_lines[0]} added."
-
+        assert output, "The resolver cannot find a possible line."
         #        self.game_grid.add_line_to_grid(line)
 
 
