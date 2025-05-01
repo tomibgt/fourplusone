@@ -358,6 +358,11 @@ class Grid:
         if intersection.y < Grid.y_min:
             Grid.y_min = intersection.y
 
+    def get_intersections(self) -> list[Intersection]:
+        reva = []
+        for insect in self.intersections:
+            reva.append(Intersection(insect.x, insect.y))
+
     def get_segments(self):
         return self.line_segments
     

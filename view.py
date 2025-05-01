@@ -33,7 +33,6 @@ class View:
                                     ((self.resolver.game_grid.focus[1]-self.resolver.game_grid.y_min)*scale)+2+y_offset, 
                                     7, 7))
 
-        print(f"{self.resolver.game_grid.intersections}")
         for x in range(self.resolver.game_grid.x_min, self.resolver.game_grid.x_max+1):
             for y in range(self.resolver.game_grid.y_min, self.resolver.game_grid.y_max+1):
                 if self.resolver.game_grid.is_filled(Intersection(x, y)):

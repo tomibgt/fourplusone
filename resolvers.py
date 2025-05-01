@@ -13,14 +13,10 @@ class Resolver:
 
     #game_grid: Grid = None
 
-    def __init__(self, gridi: Grid = None, view: View = None):
-        if gridi is None:
-            gridi = Grid()
-        self.game_grid   = gridi
+    def __init__(self):
+        self.game_grid   = Grid()
         self.still_going = True
-        self.view        = view
-        if self.view is not None:
-            self.view.set_resolver(self)
+        self.view        = None
 
     def is_still_going(self) -> bool:
         return self.still_going
@@ -46,10 +42,8 @@ class RandomResolver(Resolver):
         y_heading = None
         print("Let's a while...")
         while opening and not move_made:
-            print("loop")
             opening = False
-            for target in self.game_grid.intersections:
-                print(f"target: {target}")
+            for target in self.game_grid.get_intersections():
                 if self.game_grid.is_valid_line(Line(target, 0, -1)):
                     opening = True
                     x_heading = 0
@@ -205,7 +199,7 @@ class UltimateResolver(Resolver):
 
         # Find out the possible next moves and store them as new paths
         possible_moves: list[Line] = []
-        for target in self.game_grid.intersections:
+        for target in self.game_grid.get_intersections():
             Grid.focus = target # Tell the viewer what intersection are we interested in now
             self.ticker += 1
             if self.ticker > 3:

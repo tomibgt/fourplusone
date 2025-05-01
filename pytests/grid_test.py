@@ -26,7 +26,6 @@ def test_adding_and_retrieving_lines():
     out_lines.append(grid.Line(grid.Intersection(2, 3), -1, 0))
 
     counter: int = 36
-    print(f"Starting with: {str(gridi.intersections)}")
     for line in in_lines:
         gridi.add_line_to_grid(line)
         counter += 1
