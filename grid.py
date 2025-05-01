@@ -136,6 +136,9 @@ class LineSegment:
 
     def __repr__(self):
         return f"({self.intersection}: {self.x_heading}, {self.y_heading})"
+    
+    def get_copy(self):
+        return LineSegment(Intersection(self.intersection.x, self.intersection.y), self.x_heading, self.y_heading)
 
     def _normalize(self):
         """
@@ -253,12 +256,8 @@ class Line:
             list[LineSegment]: The list of normalized segments.
         """
         reva: list[LineSegment] = []
-        intersection = self.intersection.get_copy()
         for i in range(4):
-            segment = LineSegment(intersection, self.x_heading, self.y_heading)
-            reva.append(segment)
-            intersection.x += self.x_heading
-            intersection.y += self.y_heading
+            reva.append(LineSegment(Intersection(self.intersection.x+(i*self.x_heading), self.intersection.y+(i*self.y_heading)), self.x_heading, self.y_heading))
         return reva
         
     def _normalize(self):
@@ -334,7 +333,7 @@ class Grid:
         if not isinstance(segment, LineSegment):
             return NotImplemented
         #bisect.insort(self.line_segments, segment)
-        self.line_segments.append(segment)
+        self.line_segments.append(segment.get_copy())
         #self._fill_intersection(segment.x, segment.y)
         #self._fill_intersection(segment.x+segment.x_heading, segment.y+segment.y_heading)
 
@@ -365,7 +364,10 @@ class Grid:
         return reva
 
     def get_segments(self):
-        return self.line_segments
+        reva = []
+        for seggie in self.line_segments:
+            reva.append(LineSegment(Intersection(seggie.intersection.x, seggie.intersection.y), seggie.x_heading, seggie.y_heading))
+        return reva
     
     def _has_segment(self, segment: LineSegment) -> bool:
         """

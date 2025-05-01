@@ -1,5 +1,6 @@
-from typing import List
 import pytest
+from typing import List
+from collections import Counter
 
 import grid
 
@@ -72,4 +73,19 @@ def test__fill_intersection():
     gridi._fill_intersection(sect3)
     assert len(gridi.intersections) == 37
 
+def test_get_segments():
+    gridi: grid.Grid = grid.Grid()
+    gridi._add_line_segment(grid.LineSegment(grid.Intersection(-4 ,0), 0, 1))
+    seggie_list = gridi.get_segments()
+    assert len(seggie_list) == 1
+
+    gridi: grid.Grid = grid.Grid()
+    gridi.add_line_to_grid(grid.Line(grid.Intersection(1, 0), 1, 1))
+    seggie_list = gridi.get_segments()
+    assert len(seggie_list) == 4
+    seglist = [grid.LineSegment(grid.Intersection(1, 0), 1, 1),
+               grid.LineSegment(grid.Intersection(2, 1), 1, 1),
+               grid.LineSegment(grid.Intersection(3, 2), 1, 1),
+               grid.LineSegment(grid.Intersection(4, 3), 1, 1)]
+    assert Counter(seglist) == Counter(seggie_list), "The line's segments are not properly stored."
 
