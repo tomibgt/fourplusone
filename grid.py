@@ -169,6 +169,8 @@ class Line:
     Point = namedtuple('Point', ['x', 'y'])
 
     def __init__(self, intersection: Intersection, x_heading: int, y_heading: int):
+        if not isinstance(intersection, Intersection):
+            raise ValueError("intersection must be an Intersection")
         if (x_heading, y_heading) not in {
             (-1, 0), (1, 0), (0, -1), (0, 1),
             (-1, -1), (-1, 1), (1, -1), (1, 1)
@@ -238,10 +240,10 @@ class Line:
     def __repr__(self):
         return f"({self.intersection}; {self.x_heading}; {self.y_heading})"
     
-    def get_intersections(self):
+    def get_intersections(self) -> list[Intersection]:
         reva: list[Intersection] = []
-        x = self.intersection.x
-        y = self.intersection.y
+        x: int = int(self.intersection.x)
+        y: int = int(self.intersection.y)
         for i in range(5):
             reva.append(Intersection(x, y))
             x += self.x_heading
@@ -256,8 +258,10 @@ class Line:
             list[LineSegment]: The list of normalized segments.
         """
         reva: list[LineSegment] = []
+        x: int = int(self.intersection.x)
+        y: int = int(self.intersection.y)
         for i in range(4):
-            reva.append(LineSegment(Intersection(self.intersection.x+(i*self.x_heading), self.intersection.y+(i*self.y_heading)), self.x_heading, self.y_heading))
+            reva.append(LineSegment(Intersection(x+(i*self.x_heading), y+(i*self.y_heading)), self.x_heading, self.y_heading))
         return reva
         
     def _normalize(self):
@@ -286,7 +290,7 @@ class Grid:
     x_max: int = 0
     y_min: int = 0
     y_max: int = 0
-    focus: list[int, int]
+    focus: Intersection
 
     def __init__(self):
         self.line_count = 0
