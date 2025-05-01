@@ -2,9 +2,76 @@ from __future__ import annotations
 from collections import namedtuple
 import bisect
 
+class Intersection:
+
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+
+    def __lt__(self, other: Intersection):
+        if not isinstance(other, Intersection):
+            return NotImplemented
+        if self.x < other.x:
+            return True
+        if self.x > other.x:
+            return False
+        if self.y < other.y:
+            return True
+        if self.y > other.y:
+            return False
+        return False
+
+    def __le__(self, other: Intersection):
+        if not isinstance(other, Intersection):
+            return NotImplemented
+        if self.x < other.x:
+            return True
+        if self.x > other.x:
+            return False
+        if self.y < other.y:
+            return True
+        if self.y > other.y:
+            return False
+        return True
+
+    def __eq__(self, other: Intersection):
+        if not isinstance(other, Intersection):
+            return NotImplemented
+        return self.x==other.x and self.y==other.y
+
+    def __ne__(self, other: Intersection):
+        if not isinstance(other, Intersection):
+            return NotImplemented
+        return self.x != other.x or self.y != other.y
+
+    def __gt__(self, other: Intersection):
+        if not isinstance(other, Intersection):
+            return NotImplemented
+        return not self.__le__(other)
+
+    def __ge__(self, other: Intersection):
+        if not isinstance(other, Intersection):
+            return NotImplemented
+        return not self.__lt__(other)
+    
+    def __hash__(self: Intersection):
+        floatx: float = float(self.x)+0.5
+        floaty: float = float(self.y)+0.5
+        return int(100*floatx/floaty)
+    
+    def __str__(self: Intersection):
+        return f"({self.x}, {self.y})"
+
+    def __repr__(self: Intersection):
+        return f"({self.x}, {self.y})"
+
+    def get_copy(self):
+        return(Intersection(self.x, self.y))
+    
+
 class LineSegment:
 
-    def __init__(self, x: int, y: int, x_heading: int, y_heading: int):
+    def __init__(self, intersection: Intersection, x_heading: int, y_heading: int):
 
         if (x_heading, y_heading) not in {
             (-1, 0), (1, 0), (0, -1), (0, 1),
@@ -12,20 +79,22 @@ class LineSegment:
         }:
             raise ValueError("x_heading and y_heading must each be -1, 0, or 1")
 
-        self.x: int = x
-        self.y: int = y
+        self.intersection: Intersection = intersection
         self.x_heading: int = x_heading
         self.y_heading: int = y_heading
+        self._normalize()
 
     def __lt__(self, other):
         if not isinstance(other, LineSegment):
             return NotImplemented
-        if self.x < other.x:
+        if self.intersection < other.intersection:
             return True
-        if self.y < other.y:
-            return True
+        if self.intersection > other.intersection:
+            return False
         if self.x_heading < other.x_heading:
             return True
+        if self.x_heading > other.x_heading:
+            return False
         if self.y_heading < other.y_heading:
             return True
         return False
@@ -40,14 +109,14 @@ class LineSegment:
     def __eq__(self, other):
         if not isinstance(other, LineSegment):
             return NotImplemented
-        return (self.x, self.y, self.x_heading, self.y_heading) == \
-               (other.x, other.y, other.x_heading, other.y_heading)
+        return (self.intersection, self.x_heading, self.y_heading) == \
+               (other.intersection, other.x_heading, other.y_heading)
 
     def __ne__(self, other):
         if not isinstance(other, LineSegment):
             return NotImplemented
-        return (self.x, self.y, self.x_heading, self.y_heading) != \
-               (other.x, other.y, other.x_heading, other.y_heading)
+        return (self.intersection, self.x_heading, self.y_heading) != \
+               (other.intersection, other.x_heading, other.y_heading)
 
     def __gt__(self, other):
         if not isinstance(other, LineSegment):
@@ -60,15 +129,18 @@ class LineSegment:
         return not self.__lt__(other)
     
     def __hash__(self):
-        return hash((self.x, self.y, self.x_heading, self.y_heading))
+        return hash((self.intersection.__hash__(), self.x_heading, self.y_heading))
     
     def __str__(self):
-        return f"({self.x}, {self.y}: {self.x_heading}, {self.y_heading})"
+        return f"({self.intersection}: {self.x_heading}, {self.y_heading})"
 
     def __repr__(self):
-        return f"({self.x}, {self.y}: {self.x_heading}, {self.y_heading})"
+        return f"({self.intersection}: {self.x_heading}, {self.y_heading})"
+    
+    def get_copy(self):
+        return LineSegment(Intersection(self.intersection.x, self.intersection.y), self.x_heading, self.y_heading)
 
-    def normalize(self):
+    def _normalize(self):
         """
         Normalize this line so that x_heading is 1, with the exception of
         it being 0, in which case y_heading must be 1.
@@ -81,35 +153,102 @@ class LineSegment:
         """
         if self.x_heading == -1:
             self.x_heading = 1
-            self.x -= 1
+            self.intersection.x -= 1
             if self.y_heading == -1:
                 self.y_heading = 1
-                self.y -= 1
+                self.intersection.y -= 1
             elif self.y_heading == 1:
                 self.y_heading = -1
-                self.y += 1
+                self.intersection.y += 1
         elif self.x_heading == 0 and self.y_heading == -1:
             self.y_heading = 1
-            self.y -= 1
+            self.intersection.y -= 1
 
 class Line:
 
     Point = namedtuple('Point', ['x', 'y'])
 
-    def __init__(self, x: int, y: int, x_heading: int, y_heading: int):
+    def __init__(self, intersection: Intersection, x_heading: int, y_heading: int):
+        if not isinstance(intersection, Intersection):
+            raise ValueError("intersection must be an Intersection")
         if (x_heading, y_heading) not in {
             (-1, 0), (1, 0), (0, -1), (0, 1),
             (-1, -1), (-1, 1), (1, -1), (1, 1)
         }:
             raise ValueError("x_heading and y_heading must each be -1, 0, or 1")
         
-        self.x: int = x
-        self.y: int = y
+        self.intersection: Intersection = Intersection(intersection.x, intersection.y)
         self.x_heading: int = x_heading
         self.y_heading: int = y_heading
+        self._normalize()
 
-    def get_intersections(self):
-        return [self.Point(self.x + i * self.x_heading, self.y + i * self.y_heading) for i in range(5)]
+    def __lt__(self, other):
+        if not isinstance(other, Line):
+            return NotImplemented
+        if self.intersection.x < other.intersection.x:
+            return True
+        if self.intersection.x > other.intersection.x:
+            return False
+        if self.intersection.y < other.intersection.y:
+            return True
+        if self.intersection.y > other.intersection.y:
+            return False
+        if self.x_heading < other.x_heading:
+            return True
+        if self.x_heading > other.x_heading:
+            return False
+        if self.y_heading < other.y_heading:
+            return True
+        return False
+
+
+    def __le__(self, other):
+        if not isinstance(other, Line):
+            return NotImplemented
+        if self.__lt__(other) or self.__eq__(other):
+            return True
+        return False
+
+    def __eq__(self, other):
+        if not isinstance(other, Line):
+            return NotImplemented
+        return (self.intersection, self.x_heading, self.y_heading) == \
+               (other.intersection, other.x_heading, other.y_heading)
+
+    def __ne__(self, other):
+        if not isinstance(other, Line):
+            return NotImplemented
+        return (self.intersection, self.x_heading, self.y_heading) != \
+               (other.intersection, other.x_heading, other.y_heading)
+
+    def __gt__(self, other):
+        if not isinstance(other, Line):
+            return NotImplemented
+        return not self.__le__(other)
+
+    def __ge__(self, other):
+        if not isinstance(other, Line):
+            return NotImplemented
+        return not self.__lt__(other)
+    
+    def __hash__(self):
+        return hash((self.intersection, self.x_heading, self.y_heading))
+
+    def __str__(self):
+        return f"({self.intersection}; {self.x_heading}; {self.y_heading})"
+
+    def __repr__(self):
+        return f"({self.intersection}; {self.x_heading}; {self.y_heading})"
+    
+    def get_intersections(self) -> list[Intersection]:
+        reva: list[Intersection] = []
+        x: int = int(self.intersection.x)
+        y: int = int(self.intersection.y)
+        for i in range(5):
+            reva.append(Intersection(x, y))
+            x += self.x_heading
+            y += self.y_heading
+        return reva
 
     def get_segments(self):
         """
@@ -119,39 +258,29 @@ class Line:
             list[LineSegment]: The list of normalized segments.
         """
         reva: list[LineSegment] = []
-        x = self.x
-        y = self.y
+        x: int = int(self.intersection.x)
+        y: int = int(self.intersection.y)
         for i in range(4):
-            segment = LineSegment(x, y, self.x_heading, self.y_heading)
-            segment.normalize()
-            reva.append(segment)
-            x += self.x_heading
-            y += self.y_heading
+            reva.append(LineSegment(Intersection(x+(i*self.x_heading), y+(i*self.y_heading)), self.x_heading, self.y_heading))
         return reva
         
-    def normalize(self):
+    def _normalize(self):
         """
         Normalize this line so that x_heading is 1, with the exception of
         it being 0, in which case y_heading must be 1.
-
-        Args:
-            x (int): X-coordinate of the starting point.
-            y (int): Y-coordinate of the starting point.
-            x2 (int): X-coordinate of the end point.
-            y2 (int): Y-coordinate of the end point.
         """
         if self.x_heading == -1:
             self.x_heading = 1
-            self.x -= 4
+            self.intersection.x -= 4
             if self.y_heading == -1:
                 self.y_heading = 1
-                self.y -= 4
+                self.intersection.y -= 4
             elif self.y_heading == 1:
                 self.y_heading = -1
-                self.y += 4
+                self.intersection.y += 4
         elif self.x_heading == 0 and self.y_heading == -1:
             self.y_heading = 1
-            self.y -= 4
+            self.intersection.y -= 4
 
 
 class Grid:
@@ -161,26 +290,26 @@ class Grid:
     x_max: int = 0
     y_min: int = 0
     y_max: int = 0
-    focus: list[int, int]
+    focus: Intersection
 
     def __init__(self):
         self.line_count = 0
-        self.intersections: dict[tuple[int, int], bool] = {}
+        self.intersections: dict[Intersection, bool] = {}
         self.line_segments: list[LineSegment] = []
         """Initialize the grid with the initial plus laid on it."""
         for i in range(3):
-            self._fill_intersection(  i  ,   0  )
-            self._fill_intersection(i - 3,   3  )
-            self._fill_intersection(i + 3,   3  )
-            self._fill_intersection(i - 4,   6  )
-            self._fill_intersection(i + 2,   6  )
-            self._fill_intersection(i - 1,   9  )
-            self._fill_intersection(  2  , i + 1)
-            self._fill_intersection( -1  ,   i  )
-            self._fill_intersection(  5  , i + 4)
-            self._fill_intersection(  2  , i + 7)
-            self._fill_intersection( -1  , i + 6)
-            self._fill_intersection( -4  , i + 3)
+            self._fill_intersection(Intersection(  i  ,   0  ))
+            self._fill_intersection(Intersection(i - 3,   3  ))
+            self._fill_intersection(Intersection(i + 3,   3  ))
+            self._fill_intersection(Intersection(i - 4,   6  ))
+            self._fill_intersection(Intersection(i + 2,   6  ))
+            self._fill_intersection(Intersection(i - 1,   9  ))
+            self._fill_intersection(Intersection(  2  , i + 1))
+            self._fill_intersection(Intersection( -1  ,   i  ))
+            self._fill_intersection(Intersection(  5  , i + 4))
+            self._fill_intersection(Intersection(  2  , i + 7))
+            self._fill_intersection(Intersection( -1  , i + 6))
+            self._fill_intersection(Intersection( -4  , i + 3))
 
     def add_line_to_grid(self, line: Line):
         """
@@ -192,10 +321,9 @@ class Grid:
 
         if self.is_valid_line(line):
             for intersection in line.get_intersections():
-                self._fill_intersection(intersection.x, intersection.y)
+                self._fill_intersection(intersection)
             segments = line.get_segments()
             for segment in segments:
-                segment.normalize()
                 self._add_line_segment(segment)
             self.line_count += 1
 
@@ -209,11 +337,11 @@ class Grid:
         if not isinstance(segment, LineSegment):
             return NotImplemented
         #bisect.insort(self.line_segments, segment)
-        self.line_segments.append(segment)
+        self.line_segments.append(segment.get_copy())
         #self._fill_intersection(segment.x, segment.y)
         #self._fill_intersection(segment.x+segment.x_heading, segment.y+segment.y_heading)
 
-    def _fill_intersection(self, x: int, y: int):
+    def _fill_intersection(self, intersection: Intersection):
         """
         Mark the intersection (x, y) as filled.
 
@@ -221,21 +349,29 @@ class Grid:
         extends the scope.
 
         Args:
-            x (int): X-coordinate of the intersection.
-            y (int): Y-coordinate of the intersection.
+            intersection (Intersection): The intersection.
         """
-        self.intersections[(x, y)] = True
-        if x > Grid.x_max:
-            Grid.x_max = x
-        if y > Grid.y_max:
-            Grid.y_max = y
-        if x < Grid.x_min:
-            Grid.x_min = x
-        if y < Grid.y_min:
-            Grid.y_min = y
+        self.intersections[intersection] = True
+        if intersection.x > Grid.x_max:
+            Grid.x_max = intersection.x
+        if intersection.y > Grid.y_max:
+            Grid.y_max = intersection.y
+        if intersection.x < Grid.x_min:
+            Grid.x_min = intersection.x
+        if intersection.y < Grid.y_min:
+            Grid.y_min = intersection.y
+
+    def get_intersections(self) -> list[Intersection]:
+        reva = []
+        for insect in self.intersections:
+            reva.append(Intersection(insect.x, insect.y))
+        return reva
 
     def get_segments(self):
-        return self.line_segments
+        reva = []
+        for seggie in self.line_segments:
+            reva.append(LineSegment(Intersection(seggie.intersection.x, seggie.intersection.y), seggie.x_heading, seggie.y_heading))
+        return reva
     
     def _has_segment(self, segment: LineSegment) -> bool:
         """
@@ -249,19 +385,18 @@ class Grid:
         """
         return segment in self.line_segments
 
-    def is_filled(self, x: int, y: int) -> bool:
+    def is_filled(self, intersection: Intersection) -> bool:
         """
-        Checks if the segment (x, y) is filled.
+        Checks if the intersection is filled in this grid.
 
         Args:
-            x (int): X-coordinate.
-            y (int): Y-coordinate.
+            intersection (Intersection): The intersection.
 
         Returns:
-            bool: True, if the coordinate is filled, False otherwise.
+            bool: True, if the intersection is filled, False otherwise.
         """
-        if (x, y) in self.intersections:
-            return self.intersections[(x,y)]
+        if intersection in self.intersections:
+            return self.intersections[intersection]
         return False
     
     def is_valid_line(self, line: Line) -> bool:
@@ -277,8 +412,8 @@ class Grid:
         """
         filled = 0
         empty = 0
-        for (x, y) in line.get_intersections():
-            if self.is_filled(x, y):
+        for intersection in line.get_intersections():
+            if self.is_filled(intersection):
                 filled += 1
             else:
                 empty +=1
@@ -288,6 +423,6 @@ class Grid:
         for segment in line.get_segments():
             if segment in self.line_segments:
                 return False
-            
+
         return True
 
