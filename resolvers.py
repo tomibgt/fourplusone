@@ -4,7 +4,7 @@ import json
 import random
 import os
 import sys
-import pygame
+import time
 
 from grid import *
 from view import View
@@ -33,7 +33,7 @@ class RandomResolver(Resolver):
     def __init__(self):
         super().__init__()
         self.game_grid   = Grid()
-        self.clock = pygame.time.Clock()
+        self.linecount   = 0
 
     def add_a_line(self) -> bool:
         opening   = True
@@ -97,9 +97,11 @@ class RandomResolver(Resolver):
             if x_heading is not None:
                 line: Line = Line(target, x_heading, y_heading)
                 self.game_grid.add_line_to_grid(line)
+                self.linecount += 1
                 move_made = True
             self.still_going = move_made
-            self.clock.tick(2)
+            self.view.set_info_string(f"{self.linecount}{'...' if self.still_going else '!'}")
+            time.sleep(0.5)
             self.view.refresh()
         return move_made
     
@@ -232,9 +234,8 @@ class UltimateResolver(Resolver):
                 outputfile.write(",,,\n")
                 outputfile.flush()
                 
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        self.shut_down_procedure()
+                if self.view.check_quit_request():
+                    self.shut_down_procedure()
 
         return len(possible_moves) > 0
     
@@ -262,5 +263,5 @@ class UltimateResolver(Resolver):
         print("Stopping processing.")
         print(f"Processed for {elapsed} this session.")
         print(f"Altogehter processed for {elapsed+self.elapsed}")
-        pygame.quit()
+        self.view.shut_down()
         sys.exit()
