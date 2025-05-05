@@ -46,6 +46,9 @@ def main():
         if view.check_quit_request():
             running = False
 
+    while not view.check_quit_request():
+        pass
+
     view.shut_down()
 
 if __name__ == "__main__":
