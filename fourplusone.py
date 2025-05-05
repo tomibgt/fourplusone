@@ -1,7 +1,6 @@
 import os
 import sys
 import argparse
-import pygame
 from resolvers import *
 from view import View
 from grid import *
@@ -12,7 +11,6 @@ def main():
     width: int         = 600 # Screen width
     height: int        = 400 # Screen height
 
-    pygame.init()
     view     = View(width, height)
 
     parser = argparse.ArgumentParser(
@@ -43,22 +41,12 @@ def main():
 
     while running:
 
-        opening = resolver.add_a_line()
+        running = resolver.add_a_line()
 
-        # Poll for events
-        # pygame.QUIT event means the user clicked X to close your window
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        if view.check_quit_request():
+            running = False
 
-
-
-        while not opening and running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-    pygame.quit()
+    view.shut_down()
 
 if __name__ == "__main__":
     main()

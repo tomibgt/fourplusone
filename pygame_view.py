@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 class PygameView:
 
     def __init__(self, width: int, height: int, resolver: Resolver = None):
+        pygame.init()
         self.width       = width
         self.height      = height
         self.screen      = pygame.display.set_mode((width, height))
